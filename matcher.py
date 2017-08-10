@@ -54,7 +54,7 @@ class RM_app_matcher(Matcher):
 class RM_con_matcher(Matcher):
    
     ##match state transfer in rm RMContainerImpl                         appid       conid  
-    rm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) (\S+)_(\S+)_(\d+)_(\d+) Container Transitioned from (\w+) to (\w+)')
+    rm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) (\S+)_(\S+)_(\d+)_(\d+) Container Transitioned from (\w+) to (\w+) on event = (\S+)')
  
     @staticmethod
     def try_to_match(line): 
@@ -65,12 +65,32 @@ class RM_con_matcher(Matcher):
             app   =groups[7]
             conid =int(groups[9])
             new   =groups[11]
-            eve   =""
+            eve   =groups[12]
             event =Event(time,"RM_CON",conid,new,eve)
             return app,event
         else:
             return None,None
             
+
+class NM_con_matcher(Matcher):
+
+    ##match state transfer in nm
+    nm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) Container (\S+)_(\S+)_(\d+)_(\d+) transitioned from (\w+) to (\w+) on event = (\S+)')
+
+    @staticmethod
+    def try_to_match(line):
+        match = nm_con.match(line)
+        if match:
+            groups=match.groups()
+            time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
+            app   =groups[7]
+            conid =int(9)
+            new   =groups[11]
+            eve   =groups[12]
+            event =Event(time,"NM_CON",conid,new,eve)
+            return app,event
+        else:
+            return None,None
 
 class Event:
 
