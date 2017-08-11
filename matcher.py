@@ -9,16 +9,17 @@ class Matcher:
         pass
 
 class RM_att_matcher(Matcher):
-    ##                                                                                   appid attid       
-    rm_att = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\w+)RMAppAttemptImpl (\S+)_(\S+)_(\d+) State change from (\w+) to (\w+) on event = (\S+)')
+    ##                                                                          appid     attid       
+    rm_att = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) appattempt_(\d+)_(\d+)_(\d+) State change from (\w+) to (\w+) on event = (\S+)')
 
     @staticmethod
     def try_to_match(line):
         match =RM_att_matcher.rm_att.match(line)
         if match:
             groups=match.groups()
-            time =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
-            app  =groups[7]
+            time =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            #time =groups[2],":",groups[3],":",groups[4]
+            app  =groups[6]+"_"+groups[7]
             ##used to count sometimes
             attid=int(groups[8])
             new  =groups[10]
@@ -33,15 +34,16 @@ class RM_att_matcher(Matcher):
 class RM_app_matcher(Matcher):
 
     ##match state transfer in rm RMAppImpl                                        appid 
-    rm_app = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+)RMAppImpl (\S+)_(\S+) State change from (\w+) to (\w+) on event = (\S+)')
+    rm_app = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) application_(\d+)_(\d+) State change from (\w+) to (\w+) on event = (\S+)')
 
     @staticmethod
     def try_to_match(line):
         match=RM_app_matcher.rm_app.match(line)
         if match:
             groups=match.groups()
-            time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
-            app   =groups[7]
+            time  =int(groups[2])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            #time  =groups[2],":",groups[3],":",groups[4]
+            app   =groups[6]+"_"+groups[7]
             appid =int(app.split("_")[1])
             new   =groups[9]
             eve   =groups[10]
@@ -53,16 +55,16 @@ class RM_app_matcher(Matcher):
 
 class RM_con_matcher(Matcher):
    
-    ##match state transfer in rm RMContainerImpl                         appid       conid  
-    rm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) (\S+)_(\S+)_(\d+)_(\d+) Container Transitioned from (\w+) to (\w+) on event = (\S+)')
+    ##match state transfer in rm RMContainerImpl                                appid          conid  
+    rm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) container_(\d+)_(\d+)_(\d+)_(\d+) Container Transitioned from (\w+) to (\w+) on event = (\S+)')
  
     @staticmethod
     def try_to_match(line): 
         match=RM_con_matcher.rm_con.match(line)
         if match:
             groups=match.groups()
-            time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
-            app   =groups[7]
+            time  =int(groups[2])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            app   =groups[6]+"_"+groups[7]
             conid =int(groups[9])
             new   =groups[11]
             eve   =groups[12]
@@ -75,15 +77,15 @@ class RM_con_matcher(Matcher):
 class NM_con_matcher(Matcher):
 
     ##match state transfer in nm
-    nm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) Container (\S+)_(\S+)_(\d+)_(\d+) transitioned from (\w+) to (\w+) on event = (\S+)')
+    nm_con = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) Container container_(\d+)_(\d+)_(\d+)_(\d+) transitioned from (\w+) to (\w+) on event = (\S+)')
 
     @staticmethod
     def try_to_match(line):
         match = NM_con_matcher.nm_con.match(line)
         if match:
             groups=match.groups()
-            time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
-            app   =groups[7]
+            time  =int(groups[2])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            app   =groups[6]+"_"+groups[7]
             conid =int(9)
             new   =groups[11]
             eve   =groups[12]
@@ -95,7 +97,7 @@ class NM_con_matcher(Matcher):
 class Event:
 
                 
-    def __init__(time,source,id,state,eve):
+    def __init__(self,time,source,id,state,eve):
         """
            time: time stamp, resolution is ms
            source: source of this event(e.g., rm_att)
@@ -108,6 +110,9 @@ class Event:
         self.id    = id
         self.state = state
         self.eve   = eve
+    
+    def __str__(self):
+        return str(self.time)+" "+self.source+" "+str(self.id)+" "+self.state+" "+self.eve
 
 
 

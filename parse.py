@@ -18,28 +18,30 @@ class YarnParser:
         self.nm_logs=nm_logs
         self.apps={}
 
-    
+   
+    def add_event(self,app,event):
+        if app is not None:
+            if self.apps.get(app) is None:
+                self.apps[app]=[]
+            self.apps[app].append(event)
+            return True
+        else:
+            return False 
 
     def rm_parse(self):
         rm_file=open(self.rm_log,"r")
         for line in rm_file.readlines():
-            app,event=RM_att_matcher.try_to_match(line)
-            if app is not None:
-                ##always first match the app event 
-                if self.apps.get(app) is None:
-                    self.apps[app]=[]
-                print event
-                self.apps[app].append(event)
+            app,event=RM_app_matcher.try_to_match(line)
+            if self.add_event(app,event):    
                 continue
 
-            app,event=RM_app_matcher.try_to_match(line)
-            if app is not None:
-                self.apps[app].append(event)
+
+            app,event=RM_att_matcher.try_to_match(line)
+            if self.add_event(app,event):
                 continue
 
             app,event=RM_con_matcher.try_to_match(line)
-            if app is not None:
-                self.apps[app].append(event)
+            if self.add_event(app,event):
                 continue
                 
             
@@ -50,8 +52,7 @@ class YarnParser:
             nm_file=open(f,"r")
             for line in nm_file.readlines():
                 app,event=NM_con_matcher.try_to_match(line)
-                if app is not None:
-                    self.apps[app].append(event)
+                if self.add_event(app,event):
                     continue
 
     ##TODO analyze the allocation delay and launching dey
@@ -64,7 +65,10 @@ class YarnParser:
             app_events=self.apps[app]
             app_events.sort(key=lambda x: x.time)
         with open("./test.data","w") as outfile:
-            json.dump(self.apps,outfile) 
+            for app in self.apps.keys():
+                outfile.write(app+"\n")
+                for event in self.apps[app]:
+                    outfile.write(str(event)+"\n") 
 
     def get_apps(self):
         return self.apps
