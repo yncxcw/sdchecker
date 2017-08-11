@@ -1,7 +1,8 @@
 #!/bin/python
 
 import re
-from match import * 
+import json
+from matcher import * 
 
 
 start=-1
@@ -27,6 +28,7 @@ class YarnParser:
                 ##always first match the app event 
                 if self.apps.get(app) is None:
                     self.apps[app]=[]
+                print event
                 self.apps[app].append(event)
                 continue
 
@@ -44,21 +46,25 @@ class YarnParser:
 
 
     def nm_parse(self):
-        for f in nm_logs:
+        for f in self.nm_logs:
             nm_file=open(f,"r")
-            app,event=NM_con_matcher.try_to_match(line)
-            if app is not None:
-                self.apps[app].append(event)
-                continue
+            for line in nm_file.readlines():
+                app,event=NM_con_matcher.try_to_match(line)
+                if app is not None:
+                    self.apps[app].append(event)
+                    continue
 
     ##TODO analyze the allocation delay and launching dey
     def spark_parse(self):
+        pass
 
     ##sort evetns in each app by time stamp
     def sort_by_time(self):
         for app in self.apps.keys():
             app_events=self.apps[app]
             app_events.sort(key=lambda x: x.time)
+        with open("./test.data","w") as outfile:
+            json.dump(self.apps,outfile) 
 
     def get_apps(self):
         return self.apps

@@ -10,11 +10,11 @@ class Matcher:
 
 class RM_att_matcher(Matcher):
     ##                                                                                   appid attid       
-    rm_att = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+)RMAppAttemptImpl (\S+)_(\S+)_(\d+) State change from (\w+) to (\w+) on event = (\S+)')
+    rm_att = re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\w+)RMAppAttemptImpl (\S+)_(\S+)_(\d+) State change from (\w+) to (\w+) on event = (\S+)')
 
     @staticmethod
     def try_to_match(line):
-        match =rm_att.match(line)
+        match =RM_att_matcher.rm_att.match(line)
         if match:
             groups=match.groups()
             time =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
@@ -37,7 +37,7 @@ class RM_app_matcher(Matcher):
 
     @staticmethod
     def try_to_match(line):
-        match=rm_app.match(line)
+        match=RM_app_matcher.rm_app.match(line)
         if match:
             groups=match.groups()
             time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
@@ -58,7 +58,7 @@ class RM_con_matcher(Matcher):
  
     @staticmethod
     def try_to_match(line): 
-        match=rm_con.match(line)
+        match=RM_con_matcher.rm_con.match(line)
         if match:
             groups=match.groups()
             time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
@@ -79,7 +79,7 @@ class NM_con_matcher(Matcher):
 
     @staticmethod
     def try_to_match(line):
-        match = nm_con.match(line)
+        match = NM_con_matcher.nm_con.match(line)
         if match:
             groups=match.groups()
             time  =int(groups[2])*3600*1000+int(groups[3])*1000+int(groups[4])
@@ -95,7 +95,7 @@ class NM_con_matcher(Matcher):
 class Event:
 
                 
-    def __init__(time,source,id,state,eve)
+    def __init__(time,source,id,state,eve):
         """
            time: time stamp, resolution is ms
            source: source of this event(e.g., rm_att)
