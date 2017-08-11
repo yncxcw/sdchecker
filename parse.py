@@ -30,17 +30,18 @@ class YarnParser:
 
     def rm_parse(self):
         rm_file=open(self.rm_log,"r")
+        host = self.rm_log.split("-")[-1].split(".")[0]
         for line in rm_file.readlines():
-            app,event=RM_app_matcher.try_to_match(line)
+            app,event=RM_app_matcher.try_to_match(line,host)
             if self.add_event(app,event):    
                 continue
 
 
-            app,event=RM_att_matcher.try_to_match(line)
+            app,event=RM_att_matcher.try_to_match(line,host)
             if self.add_event(app,event):
                 continue
 
-            app,event=RM_con_matcher.try_to_match(line)
+            app,event=RM_con_matcher.try_to_match(line,host)
             if self.add_event(app,event):
                 continue
                 
@@ -50,8 +51,9 @@ class YarnParser:
     def nm_parse(self):
         for f in self.nm_logs:
             nm_file=open(f,"r")
+            host = f.split("-")[-1].split(".")[0]
             for line in nm_file.readlines():
-                app,event=NM_con_matcher.try_to_match(line)
+                app,event=NM_con_matcher.try_to_match(line,host)
                 if self.add_event(app,event):
                     continue
 
