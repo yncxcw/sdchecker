@@ -28,9 +28,7 @@ class RM_att_matcher(Matcher):
             return app,event
         else:
             return None,None
-            
-            
-        
+                    
 class RM_app_matcher(Matcher):
 
     ##match state transfer in rm RMAppImpl                                        appid 
@@ -52,7 +50,6 @@ class RM_app_matcher(Matcher):
         else:
             return None,None
         
-
 class RM_con_matcher(Matcher):
    
     ##match state transfer in rm RMContainerImpl                                appid          conid  
@@ -75,7 +72,6 @@ class RM_con_matcher(Matcher):
         else:
             return None,None
             
-
 class NM_con_matcher(Matcher):
 
     ##match state transfer in nm
@@ -95,6 +91,23 @@ class NM_con_matcher(Matcher):
             return app,event
         else:
             return None,None
+
+
+class SPARK_master_matcher(Matcher):
+
+    ##match log messae in spark driver stderr
+    @staticmethod
+    def try_to_match(line,host):
+        pass
+
+
+
+class SPARK_Slave_matcher(Matcher):
+
+    ##match log message in spark executor stderr
+    @staticmethod
+    def try_to_match(line,host):
+        pass
 
 class Event:
 

@@ -119,9 +119,4 @@ class Anylyze:
                         print "miss match event"
                 else:
                     pass
-        return rm_allo_delays
-
-
-        
-        
-        
+        return rm_allo_delays        

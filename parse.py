@@ -8,14 +8,12 @@ from matcher import *
 start=-1
 
 #yarn log parser
-class YarnParser:
-
-
-    
+class YarnParser:    
     ##log file for rm and log file list for nm_logs
-    def __init__(self,rm_log,nm_logs):
+    def __init__(self,rm_log,nm_logs,app_logs):
         self.rm_log =rm_log
         self.nm_logs=nm_logs
+        self.app_logs=app_logs
         self.apps={}
 
    
@@ -45,9 +43,6 @@ class YarnParser:
             if self.add_event(app,event):
                 continue
                 
-            
-
-
     def nm_parse(self):
         for f in self.nm_logs:
             nm_file=open(f,"r")
@@ -59,6 +54,19 @@ class YarnParser:
 
     ##TODO analyze the allocation delay and launching dey
     def spark_parse(self):
+        for f in self.app_logs:
+            app_file=open(f,"r")
+            host="null"
+            for line in app_file.readlines():
+                app,event=SPARK_master_matcher(line,None)
+                if self.add_event(app,event):
+                    continue
+        
+                app,event=SPARK_Slave_matcher(line,None)
+                if self.add_event(app,event):
+                    continue
+                
+                
         pass
 
     ##sort evetns in each app by time stamp
