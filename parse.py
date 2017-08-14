@@ -18,13 +18,14 @@ class YarnParser:
 
    
     def add_event(self,app,event):
-        if app is not None:
-            if self.apps.get(app) is None:
-                self.apps[app]=[]
-            self.apps[app].append(event)
+        if app is None:
+            return False;
+        if event is None:
+            return False
+        if self.apps.get(app) is None:
+            self.apps[app]=[]
+        self.apps[app].append(event)
             return True
-        else:
-            return False 
 
     def rm_parse(self):
         rm_file=open(self.rm_log,"r")
@@ -58,15 +59,19 @@ class YarnParser:
             app_file=open(f,"r")
             host="null"
             for line in app_file.readlines():
+                terms=f.split("/")[-2].split("_")
+                ##we can only extract app id from file path 
+                ##TODO add host
+                app_name=terms[1]+"_"+terms[2]
                 app,event=SPARK_master_matcher(line,None)
-                if self.add_event(app,event):
+                if self.add_event(app_name,event):
                     continue
-        
-                app,event=SPARK_Slave_matcher(line,None)
-                if self.add_event(app,event):
-                    continue
-                
-                
+                ##for executor log, we need additionly extract
+                ##container id
+                container_id=int(terms[4])
+                app,event=SPARK_Slave_matcher(line,None,container_id)
+                if self.add_event(app_name,event):
+                    continue 
         pass
 
     ##sort evetns in each app by time stamp

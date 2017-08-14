@@ -92,22 +92,68 @@ class NM_con_matcher(Matcher):
         else:
             return None,None
 
+"""
+For spark driver logs, currently we only logs two events
+(1) First log message to record the container launched time
+(2) The RM-app registering event
 
+"""
 class SPARK_master_matcher(Matcher):
 
+    ##first log message in driver
+    spark_master_int=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S)TERM')
+    ##when app master reigsters with RM
+    spark_master_reg=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO YarnRMClient: Registering(\S+)')
     ##match log messae in spark driver stderr
     @staticmethod
     def try_to_match(line,host):
-        pass
+        match_ini=SPARK_master_matcher.spark_master_ini.match(line)
+        if match_ini:
+            groups=match_ini.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_DRIVER",1,"INIT",None,host)
+            return None,envent
 
+        match_reg=SPARK_master_matcher.spark_master_reg.match(line)
+        if match_reg:
+            groups=match_reg.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_DRIVER",1,"REG",None,host)
+            return None,envent
+        
+        return None,None
 
+"""
+For spark executor logs, currently we only logs two events
+(1) First log message to record the task launched time
+(2) The application master registered time
 
-class SPARK_Slave_matcher(Matcher):
+"""
+class SPARK_slave_matcher(Matcher):
+    
+    ##first log message in executor
+    spark_slave_ini=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S)TERM')
+    ##log message when executor get assigned first task
+    spark_slave_ass=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S) Got assigned task (\S+)')
 
-    ##match log message in spark executor stderr
+    ## match log message in spark executor stderr
+    ## container: container-id in which this executor is running
     @staticmethod
-    def try_to_match(line,host):
-        pass
+    def try_to_match(line,host,container):
+        match_ini=SPARK_slave_matcher.spark_slave_ini.match(line)
+        if match_ini:
+            groups=match_ini.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_EXECUTOR",container,"INIT",None,host)
+            return None,envent
+
+        match_ass=SPARK_slave_matcher.spark_slave_ass.match(line)
+        if match_reg:
+            groups=match_ass.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_DRIVER",container,"ASS",None,host)
+            return None,envent
+        return None,None
 
 class Event:
 
@@ -130,6 +176,4 @@ class Event:
     
     def __str__(self):
         return str(self.time)+" "+self.source+" "+str(self.id)+" "+self.state+" "+self.eve+" "+self.host
-
-
 
