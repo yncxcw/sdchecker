@@ -5,7 +5,7 @@ from parse import YarnParser
 import getopt,sys
 from os import listdir
 from os.path import isfile,join
-
+import utils
 ##input yarn logs dir
 log_dir=None
 ##output result logs dir
@@ -88,8 +88,11 @@ if __name__=="__main__":
             pass
     ##initialize parser
     yarn_parser=YarnParser(rm_log,nm_logs,app_logs)
+    ##parse logs
     yarn_parser.rm_parse()
     yarn_parser.nm_parse()
+    yarn_parser.spark_parse()
+    ##sort by times
     yarn_parser.sort_by_time()
     
       

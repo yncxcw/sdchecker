@@ -28,6 +28,7 @@ class YarnParser:
             return True
 
     def rm_parse(self):
+        assert(self.rm_log is not None)
         rm_file=open(self.rm_log,"r")
         host = self.rm_log.split("-")[-1].split(".")[0]
         for line in rm_file.readlines():
@@ -45,6 +46,7 @@ class YarnParser:
                 continue
                 
     def nm_parse(self):
+        assert(self.nm_logs > 0)
         for f in self.nm_logs:
             nm_file=open(f,"r")
             host = f.split("-")[-1].split(".")[0]
@@ -55,6 +57,8 @@ class YarnParser:
 
     ##TODO analyze the allocation delay and launching dey
     def spark_parse(self):
+        if len(self.app_logs) == 0:
+            return
         for f in self.app_logs:
             app_file=open(f,"r")
             host="null"
