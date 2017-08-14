@@ -63,8 +63,6 @@ class RM_con_matcher(Matcher):
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
             app   =groups[6]+"_"+groups[7]
             conid =int(groups[9])
-            if conid == 8:
-                print line
             new   =groups[11]
             eve   =groups[12]
             event =Event(time,"RM_CON",conid,new,eve,host)
@@ -101,9 +99,9 @@ For spark driver logs, currently we only logs two events
 class SPARK_master_matcher(Matcher):
 
     ##first log message in driver
-    spark_master_int=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S)TERM')
+    spark_master_ini=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (.+)TERM')
     ##when app master reigsters with RM
-    spark_master_reg=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO YarnRMClient: Registering(\S+)')
+    spark_master_reg=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO YarnRMClient: Registering(.+)')
     ##match log messae in spark driver stderr
     @staticmethod
     def try_to_match(line,host):
@@ -111,15 +109,15 @@ class SPARK_master_matcher(Matcher):
         if match_ini:
             groups=match_ini.groups()
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
-            event =Event(time,"SPARK_DRIVER",1,"INIT",None,host)
-            return None,envent
+            event =Event(time,"SPARK_DRIVER",1,"INIT","INIT",host)
+            return None,event
 
         match_reg=SPARK_master_matcher.spark_master_reg.match(line)
         if match_reg:
             groups=match_reg.groups()
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
-            event =Event(time,"SPARK_DRIVER",1,"REG",None,host)
-            return None,envent
+            event =Event(time,"SPARK_DRIVER",1,"REG","REG",host)
+            return None,event
         
         return None,None
 
@@ -132,27 +130,30 @@ For spark executor logs, currently we only logs two events
 class SPARK_slave_matcher(Matcher):
     
     ##first log message in executor
-    spark_slave_ini=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S)TERM')
+    spark_slave_dae=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Started daemon.*(\d+)@(\S+)')
     ##log message when executor get assigned first task
-    spark_slave_ass=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S) Got assigned task (\S+)')
+    spark_slave_ass=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (\S+) Got assigned task (\d+)')
 
     ## match log message in spark executor stderr
     ## container: container-id in which this executor is running
     @staticmethod
     def try_to_match(line,host,container):
-        match_ini=SPARK_slave_matcher.spark_slave_ini.match(line)
-        if match_ini:
-            groups=match_ini.groups()
+        match_dae=SPARK_slave_matcher.spark_slave_dae.match(line)
+        if match_dae:
+            groups=match_dae.groups()
+            #print groups
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
-            event =Event(time,"SPARK_EXECUTOR",container,"INIT",None,host)
-            return None,envent
+            host  =groups[6]
+            event =Event(time,"SPARK_EXECUTOR",container,"INIT","INIT",host)
+            return None,event
 
         match_ass=SPARK_slave_matcher.spark_slave_ass.match(line)
-        if match_reg:
+        if match_ass:
+            #print "match 4"
             groups=match_ass.groups()
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
-            event =Event(time,"SPARK_DRIVER",container,"ASS",None,host)
-            return None,envent
+            event =Event(time,"SPARK_EXECUTOR",container,"ASS","ASS",host)
+            return None,event
         return None,None
 
 class Event:

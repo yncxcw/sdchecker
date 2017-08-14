@@ -6,6 +6,7 @@ import getopt,sys
 from os import listdir
 from os.path import isfile,join
 import utils
+from analyze import Analyze
 ##input yarn logs dir
 log_dir=None
 ##output result logs dir
@@ -23,7 +24,7 @@ def parse_usage(args):
     global output_dir
 
     try:    
-        opts,args=getopt.getopt(args,None,['yarn=','output=','usage'])
+        opts,args=getopt.getopt(args,None,['logs=','output=','usage'])
     except getopt.GetoptError as err:
         print str(err)
         print_usage()
@@ -34,13 +35,17 @@ def parse_usage(args):
             return False
         elif o == "--logs":
             log_dir=v
-            print yarn_dir
+            print log_dir
         elif o == "--output":
             output_dir=v
         else:
             assert False, "unhandled option"
             print_usage()
             return False
+    if output_dir is None:
+        os.mkdir("output")
+        output_dir="./output"
+        print "will save results to ./output"
     if len(args) > 0:
         print "invalid args"
         print_usage()
@@ -59,16 +64,22 @@ def traverse_dirs(logs_dir):
         if isfile(file_path):
             files.append(file_path)
         else:
-            files=files+traver_dirs(file_path)
+            files=files+traverse_dirs(file_path)
     return files
-                
+   
+
+def persist_map(file_name,key_values):
+    f=open(file_name,"w")
+    for key,value in key_values.items():
+        f.write(key+"   "+value+"\n")
+                     
 
 if __name__=="__main__":
 
     if parse_usage(sys.argv[1:]) is False:
         sys.exit()
     ##traver all subdir to log path
-    if logs_dir is None:
+    if log_dir is None:
         copy_logs()
         log_dir="./logs"
     files=traverse_dirs(log_dir)
@@ -80,10 +91,13 @@ if __name__=="__main__":
     for f in files:
         if "resourcemanager" in f:
             rm_log=f
+            #print rm_log
         elif "nodemanager" in f:
             nm_logs.append(f)
-        elif: "stderr" in f:
+            #print f
+        elif "stderr" in f:
             app_logs.append(f)
+            #print f
         else:
             pass
     ##initialize parser
@@ -94,6 +108,28 @@ if __name__=="__main__":
     yarn_parser.spark_parse()
     ##sort by times
     yarn_parser.sort_by_time()
+    apps=yarn_parser
+    ##do analysis
+    am_delays=Analyze.am_delay(apps)
+    persist_map(output_dir+"/am_delay",am_delays)
+
+    c1_delays=Analyze.c1_delay(apps)
+    persist_map(output_dir+"/c1_delay",c1_delays)
+
+    cl_delays=Analyze.cl_delay(apps)
+    persist_map(output_dir+"/cl_delay",cl_delays)
+
+    rm_allo_delays=Analyze.rm_allo_delay(apps)
+    persist_map(output_dir+"/rm_allo_delays",rm_allo_delays)
+     
+    driver_sche_delays=Analyze.driver_sche_delay(apps)
+    persist_map(output_dir+"/driver_sche_delays",driver_sche_delays)
+
+    executor_sche_delays=Analyze.executor_sche_delay(apps)
+    persist_map(output_dir+"/executor_sche_delays",executor_sche_delays)
+
+    container_launching_delays=Analyze.container_launching_delay(apps)
+    persist_map(output_dir+"/container_launching_delay",container_launching_delays) 
     
       
      

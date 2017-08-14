@@ -1,7 +1,7 @@
 #!/bin/python
 
 
-class Anylyze:
+class Analyze:
 
     """
     apps: map for app to events 
@@ -119,4 +119,89 @@ class Anylyze:
                         print "miss match event"
                 else:
                     pass
-        return rm_allo_delays        
+        return rm_allo_delays
+
+    """
+    apps: map for app to events 
+    return the driver scheduling delay
+    (when driver do some initialization
+    before register with RM)
+
+    """
+    @staticmethod
+    def driver_sche_delay(apps):
+        driver_sche_delays={}
+        for app,events in apps.items():
+            ##first logged driver time
+            driver_ini
+            ##when am register with rm
+            driver_reg         
+            for event in events:
+                if event.source == "SPARK_DRIVER" and event.state == "INIT":
+                    driver_ini=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "REG":
+                    driver_reg=event.time
+                else:
+                    pass
+            if driver_reg - driver_ini > 0:
+                driver_sche_delays[app]=(driver_reg - driver_ini)
+            else:
+                pass
+        return driver_sche_delays
+    
+    """
+    apps: map for app to events 
+    return the executor scheduling delay
+
+    """
+    @staticmethod
+    def executor_sche_delay(maps):
+        executor_sche_delays={}
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            ini_times={}
+            for event in events:
+                if event.source == "SPARK_EXECUTOR" and event.state == "INIT":
+                    ini_times[event.id]=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.state == "ASS":
+                    if ini_times.get(evnet.id):
+                        ##compute allocation delay
+                        sche_dely=event.time - alls_time[event.id]
+                        appcon_id  =app+"-"+str(event.id)
+                        executor_sche_delays[appcon_id]=sche_delay
+                    else:
+                        print "miss match event"
+                else:
+                    pass
+        return executor_sche_delays
+
+    """
+    apps: map from app to event
+    return the launching delay for each container
+    """
+    @staticmethod
+    def container_launching_delay(maps):
+        container_launch_delays={}
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            run_times={}
+            for event in events:
+                if event.source == "NM_CON" and event.state == "CONTAINER_LAUNCHED":
+                    run_times[event.id]=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.== "INIT":
+                    if run_times.get(evnet.id):
+                        ##compute allocation delay
+                        launch_delay=event.time - run_times[event.id]
+                        appcon_id   =app+"-"+str(event.id)
+                        container_launch_delays[appcon_id]=launch_delay
+                    else:
+                        print "miss match event"
+                else:
+                    pass
+        return container_launch_delays
+
+
+        
+
+
+        
