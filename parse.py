@@ -2,6 +2,7 @@
 
 import re
 import json
+import os
 from matcher import * 
 #import cPickle
 
@@ -118,9 +119,9 @@ class YarnParser:
         with open("./data.tmp","r") as inputfile:
             self.apps={}
             appid=None
-            for line in inputfule.readlines():
+            for line in inputfile.readlines():
                 if "appid" in line:
-                    appid=line.split()[0]
+                    appid=line.split()[1]
                     self.apps[appid]=[]
                 else:
                     items=line.split()
@@ -134,11 +135,8 @@ class YarnParser:
                     self.apps[appid].append(event)
                     
                      
-    
-
-
     def get_apps(self):
-        if os.path.isfile("./data.tmp")
+        if os.path.isfile("./data.tmp"):
             self.deserialize()
         return self.apps
             

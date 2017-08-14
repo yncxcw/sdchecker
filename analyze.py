@@ -12,9 +12,9 @@ class Analyze:
         am_delays={}
         for app,events in apps.items():
             ##time for app submited
-            sub_time
+            sub_time=0
             ##time fo am registered
-            reg_time
+            reg_time=0
             for event in events:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
@@ -39,9 +39,9 @@ class Analyze:
         c1_delays={}
         for app,events in apps.items():
             ##time for app submited
-            sub_time
+            sub_time=0
             ##time fo am registered
-            c1_time
+            c1_time=0
             for event in events:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
@@ -58,13 +58,25 @@ class Analyze:
     """
     return last launched container index
     """
+    @staticmethod
     def last_container(events):
         index=2
         for event in events:
             if event.source == "NM_CON" and event.state == "RUNNING":
                 if event.id > index:
-                    index = event.di
+                    index = event.id
         return index 
+
+    """
+    return if continer in events is launched
+    """
+    @staticmethod
+    def is_launched(events,container):
+        for event in events:
+            if (event.source == "SPARK_EXECUTOR" or event.source == "SPARK_DRIVER"
+                ) and event.id == container:
+                return True
+        return False
 
     """
     apps: map for app to events 
@@ -76,9 +88,9 @@ class Analyze:
         cl_delays={}
         for app,events in apps.items():
             ##time for app submited
-            sub_time
+            sub_time=0
             ##time fo am registered
-            cl_time
+            cl_time=0
             ##id for last container
             cl_id = Analyze.last_container(events)
             for event in events:
@@ -110,9 +122,9 @@ class Analyze:
                 if event.source == "RM_CON" and event.state == "ALLOCATED":
                     alls_time[event.id]=event.time
                 elif event.source == "RM_CON" and event.state == "ACQUIRED":
-                    if alls_time.get(evnet.id):
+                    if alls_time.get(event.id) and Analyze.is_launched(events,event.id):
                         ##compute allocation delay
-                        all_dely=event.time - alls_time[event.id]
+                        all_delay=event.time - alls_time[event.id]
                         all_id  =app+"-"+str(event.id)
                         rm_allo_delays[all_id]=all_delay
                     else:
@@ -133,9 +145,9 @@ class Analyze:
         driver_sche_delays={}
         for app,events in apps.items():
             ##first logged driver time
-            driver_ini
+            driver_ini=0
             ##when am register with rm
-            driver_reg         
+            driver_reg=0         
             for event in events:
                 if event.source == "SPARK_DRIVER" and event.state == "INIT":
                     driver_ini=event.time
@@ -155,7 +167,7 @@ class Analyze:
 
     """
     @staticmethod
-    def executor_sche_delay(maps):
+    def executor_sche_delay(apps):
         executor_sche_delays={}
         for app,events in apps.items():
             ##mapping for allocation starting time
@@ -164,9 +176,9 @@ class Analyze:
                 if event.source == "SPARK_EXECUTOR" and event.state == "INIT":
                     ini_times[event.id]=event.time
                 elif event.source == "SPARK_EXECUTOR" and event.state == "ASS":
-                    if ini_times.get(evnet.id):
+                    if ini_times.get(event.id):
                         ##compute allocation delay
-                        sche_dely=event.time - alls_time[event.id]
+                        sche_delay=event.time - ini_times[event.id]
                         appcon_id  =app+"-"+str(event.id)
                         executor_sche_delays[appcon_id]=sche_delay
                     else:
@@ -180,7 +192,7 @@ class Analyze:
     return the launching delay for each container
     """
     @staticmethod
-    def container_launching_delay(maps):
+    def container_launching_delay(apps):
         container_launch_delays={}
         for app,events in apps.items():
             ##mapping for allocation starting time
@@ -188,8 +200,8 @@ class Analyze:
             for event in events:
                 if event.source == "NM_CON" and event.state == "CONTAINER_LAUNCHED":
                     run_times[event.id]=event.time
-                elif event.source == "SPARK_EXECUTOR" and event.== "INIT":
-                    if run_times.get(evnet.id):
+                elif event.source == "SPARK_EXECUTOR" and event.state== "INIT":
+                    if run_times.get(event.id):
                         ##compute allocation delay
                         launch_delay=event.time - run_times[event.id]
                         appcon_id   =app+"-"+str(event.id)
@@ -198,10 +210,4 @@ class Analyze:
                         print "miss match event"
                 else:
                     pass
-        return container_launch_delays
-
-
-        
-
-
-        
+        return container_launch_delays 

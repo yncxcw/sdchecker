@@ -4,6 +4,7 @@
 from parse import YarnParser
 import getopt,sys
 from os import listdir
+from os import mkdir
 from os.path import isfile,join
 import utils
 from analyze import Analyze
@@ -43,7 +44,7 @@ def parse_usage(args):
             print_usage()
             return False
     if output_dir is None:
-        os.mkdir("output")
+        mkdir("output")
         output_dir="./output"
         print "will save results to ./output"
     if len(args) > 0:
@@ -71,7 +72,7 @@ def traverse_dirs(logs_dir):
 def persist_map(file_name,key_values):
     f=open(file_name,"w")
     for key,value in key_values.items():
-        f.write(key+"   "+value+"\n")
+        f.write(key+"   "+str(value)+"\n")
                      
 
 if __name__=="__main__":
@@ -103,12 +104,12 @@ if __name__=="__main__":
     ##initialize parser
     yarn_parser=YarnParser(rm_log,nm_logs,app_logs)
     ##parse logs
-    yarn_parser.rm_parse()
-    yarn_parser.nm_parse()
-    yarn_parser.spark_parse()
+    #yarn_parser.rm_parse()
+    #yarn_parser.nm_parse()
+    #yarn_parser.spark_parse()
     ##sort by times
-    yarn_parser.sort_by_time()
-    apps=yarn_parser
+    #yarn_parser.sort_by_time()
+    apps=yarn_parser.get_apps()
     ##do analysis
     am_delays=Analyze.am_delay(apps)
     persist_map(output_dir+"/am_delay",am_delays)
