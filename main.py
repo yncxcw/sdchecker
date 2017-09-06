@@ -81,7 +81,7 @@ if __name__=="__main__":
         sys.exit()
     ##traver all subdir to log path
     if log_dir is None:
-        copy_logs()
+        #copy_logs()
         log_dir="./logs"
     files=traverse_dirs(log_dir)
     ##classify logs
@@ -111,6 +111,15 @@ if __name__=="__main__":
     #yarn_parser.sort_by_time()
     apps=yarn_parser.get_apps()
     ##do analysis
+    total_delays=Analyze.total_delay(apps)
+    persist_map(output_dir+"/total_delay",total_delays)
+    
+    in_delays=Analyze.in_application_delays(apps)
+    persist_map(output_dir+"/in_delay",in_delays)
+
+    out_delays=Analyze.out_application_delays(apps)
+    persist_map(output_dir+"/out_delay",out_delays) 
+
     am_delays=Analyze.am_delay(apps)
     persist_map(output_dir+"/am_delay",am_delays)
 
