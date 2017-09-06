@@ -3,6 +3,98 @@
 
 class Analyze:
 
+
+    """
+    apps: map for app to events
+    return the total delay fo all apps
+    """
+    @staticmethod
+    def total_delay(apps)
+        total_delays={}
+        for app,events in apps.items():
+            ##time for app submited
+            sub_time=0
+            ##time fo executor assigned
+            asign_time=0
+            for event in events:
+                if event.source == "RM_APP" and event.state == "SUBMITTED":
+                    sub_time=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.state == "ASS":
+                    assign_time=event.time
+                else:
+                    pass
+            if assign_time - sub_time > 0:
+                total_delays[app]=(assign_time-sub_time)
+            else:
+                pass
+
+        return total_delays
+    
+    """
+    apps: map for app to events
+    return the out-applicatoon delay fo all apps
+    """
+    @staticmethod(apps)
+    def out_application_delays(apps):
+        out_delays={}
+        for app,events in apps.items():
+            ##time for app submited
+            sub_time=0
+            ##time for driver init
+            driver_ini=0
+            ##time for driver register
+            driver_reg=0
+            ##time for executor init
+            executor_ini=0
+            ##time for executor assigned
+            executor_ass=0
+            for event in events:
+                if event.source == "RM_APP" and event.state == "SUBMITTED":
+                    sub_time=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "INIT":
+                    driver_ini=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "REG":
+                    driver_reg=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.state == "INIT":
+                    executor_int=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.state == "ASS":
+                    executor_ass=event.time
+                elif:
+                    pass
+            if (executor_ass - sub_time > 0) and (driver_reg - driver_ini > 0) and(executor_ass - executor_ini > 0):
+                out_delays[app]=(executor_ass - sub_time) - (driver_reg - driver_ini) - (executor_ass - executor_int)
+            else:
+                pass
+
+        return out_delays
+
+
+    """
+    apps: map for app to events
+    return the in-applicatoon delay fo all apps
+    """
+    @staticmethod(apps)
+    def out_application_delays(apps):
+        total_delays = total_delay(apps)
+        out_delays = out_application_delays(app)
+        in_delays={}
+        for app in total_delays.keys():
+            if out_delays.get(app) is not None:
+                in_delay=total_delays[app] - out_delays[app]
+                if in_delay > 0:
+                    in_delays[app] = in_delay
+                else:
+                    pass
+            else:
+                pass
+        return in_delays
+
+
+    
+
+
+
+
     """
     apps: map for app to events 
     return the am scheduling delay maps for all apps
@@ -210,4 +302,29 @@ class Analyze:
                         print "miss match event"
                 else:
                     pass
-        return container_launch_delays 
+        return container_launch_delays
+
+    """
+    return the proportion of group A over B which has same key
+    A: key_value
+    B: key_value
+    """
+    @staticmethod
+    def A_over_B(A,B):
+    a_over_bs={}
+    for key in A.keys():
+        if B.get(key) is not None:
+            a_over_b = (A[key]*1.0)/(B[key]*1.0)
+            if a_over_b > 0:
+                a_over_bs[key]=a_over_b
+            else:
+                pass
+        else:
+            pass
+    return a_over_bs
+
+
+
+    
+        
+     
