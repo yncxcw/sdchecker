@@ -32,3 +32,12 @@ def delete_logs():
     os.rmdir("./logs")
     
 
+def get_cdf(datas):
+    datas = sorted(datas)
+    datas = np.array(datas)
+    count,bv=np.histogram(datas,bins=100)
+    cdf=np.cumsum(count)
+    cdf=cdf/float(count.sum())
+    return bv[1:],cdf
+
+

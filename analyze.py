@@ -3,6 +3,49 @@
 
 class Analyze:
 
+    """
+    apps: map for app to events
+    return successful apps without att failed
+    """
+    @staticmethod
+    def success_apps(apps):
+        success={}
+        illegal=0
+        for app,events in apps.items():
+            failed=False
+            sub_time=0
+            driver_ini=0
+            driver_reg=0
+            executor_ass=0
+            first=True
+            for event in events:
+                if event.source == "RM_ATT" and event.state == "FAILED":
+                    failed = True
+                    break
+                elif event.source == "RM_APP" and event.state == "SUBMITTED":
+                    sub_time=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "INIT":
+                    driver_ini=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "REG":
+                    driver_reg=event.time
+                elif event.source == "SPARK_EXECUTOR" and event.state == "ASS" and first:
+                    executor_ass=event.time
+                    first=False
+
+                else:
+                    pass
+            if (driver_ini - sub_time >0 and driver_reg - driver_ini>0 and executor_ass - driver_reg>0) is False:
+                failed=True
+
+            if failed is False:
+                success[app]=events
+            else:
+                illegal = illegal + 1
+        print "success illegal ",illegal
+        return success
+                
+
+
 
     """
     apps: map for app to events
@@ -33,7 +76,7 @@ class Analyze:
                 total_delays[app]=total_delay
             else:
                 illegal = illegal + 1
-                #print app,assign_time,sub_time
+                print app,assign_time,sub_time
         print "total_delau illegal ",illegal
         return total_delays
    
@@ -136,7 +179,7 @@ class Analyze:
             for event in events:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
-                elif event.source == "RM_ATT" and event.state == "RUNNING":
+                elif event.source == "RM_APP" and event.state == "RUNNING":
                     reg_time=event.time
                 else:
                     pass
@@ -218,7 +261,7 @@ class Analyze:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
                 elif event.source == "NM_CON" and event.state == "RUNNING" and event.id == cl_id:
-                    c1_time=event.time
+                    cl_time=event.time
                 else:
                     pass
             if cl_time - sub_time > 0:
@@ -368,7 +411,35 @@ class Analyze:
                 pass
         return a_over_bs
 
-
+    
+    """
+    apps: map from app to event
+    return the application runtime
+    """
+    @staticmethod
+    def app_runtime(apps):
+        app_runtimes={}
+        illegal=0
+        for app,events in apps.items():
+        ##time for app submited
+            sub_time=0
+            ##time fo am registered
+            end_time=0
+            for event in events:
+                if event.source == "RM_APP" and event.state == "SUBMITTED":
+                    sub_time=event.time
+                elif event.source == "RM_APP" and event.state == "FINISHED":
+                    end_time=event.time
+                else:
+                    pass
+            if end_time - sub_time > 0:
+                app_runtimes[app]=(end_time-sub_time)
+            else:
+                illegal = illegal + 1
+        print "app runtime illegal ",illegal
+        return app_runtimes
+    
+   
 
     
         

@@ -8,6 +8,7 @@ from os import mkdir
 from os.path import isfile,join
 import utils
 from analyze import Analyze
+import operator
 ##input yarn logs dir
 log_dir=None
 ##output result logs dir
@@ -70,9 +71,11 @@ def traverse_dirs(logs_dir):
    
 
 def persist_map(file_name,key_values):
+    ##sort based on values
+    key_values=sorted(key_values.items(),key=lambda x:x[1])
     f=open(file_name,"w")
-    for key,value in key_values.items():
-        f.write(key+"   "+str(value)+"\n")
+    for key_value in key_values:
+        f.write(key_value[0]+"   "+str(key_value[1])+"\n")
                      
 
 if __name__=="__main__":
@@ -109,37 +112,40 @@ if __name__=="__main__":
     #yarn_parser.spark_parse()
     ##sort by times
     #yarn_parser.sort_by_time()
-    apps=yarn_parser.get_apps()
+    tapps=yarn_parser.get_apps()
+    ##parse successful apps
+    apps=Analyze.success_apps(tapps)
     ##do analysis
     total_delays=Analyze.total_delay(apps)
-    persist_map(output_dir+"/total_delay",total_delays)
+    persist_map(output_dir+"/total",total_delays)
     
     in_delays=Analyze.in_application_delays(apps)
-    persist_map(output_dir+"/in_delay",in_delays)
+    persist_map(output_dir+"/in",in_delays)
 
     out_delays=Analyze.out_application_delays(apps)
-    persist_map(output_dir+"/out_delay",out_delays) 
+    persist_map(output_dir+"/out",out_delays) 
 
     am_delays=Analyze.am_delay(apps)
-    persist_map(output_dir+"/am_delay",am_delays)
+    persist_map(output_dir+"/am",am_delays)
 
     c1_delays=Analyze.c1_delay(apps)
-    persist_map(output_dir+"/c1_delay",c1_delays)
+    persist_map(output_dir+"/cf",c1_delays)
 
     cl_delays=Analyze.cl_delay(apps)
-    persist_map(output_dir+"/cl_delay",cl_delays)
+    persist_map(output_dir+"/cl",cl_delays)
 
     rm_allo_delays=Analyze.rm_allo_delay(apps)
-    persist_map(output_dir+"/rm_allo_delays",rm_allo_delays)
+    persist_map(output_dir+"/rm",rm_allo_delays)
      
     driver_sche_delays=Analyze.driver_sche_delay(apps)
-    persist_map(output_dir+"/driver_sche_delays",driver_sche_delays)
+    persist_map(output_dir+"/driver",driver_sche_delays)
 
     executor_sche_delays=Analyze.executor_sche_delay(apps)
-    persist_map(output_dir+"/executor_sche_delays",executor_sche_delays)
+    persist_map(output_dir+"/executor",executor_sche_delays)
 
     container_launching_delays=Analyze.container_launching_delay(apps)
-    persist_map(output_dir+"/container_launching_delay",container_launching_delays) 
+    persist_map(output_dir+"/launching",container_launching_delays) 
     
-      
+    app_runtimes=Analyze.app_runtime(apps)
+    persist_map(output_dir+"/appruntime",app_runtimes)  
      
