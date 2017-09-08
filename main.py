@@ -107,11 +107,11 @@ if __name__=="__main__":
     ##initialize parser
     yarn_parser=YarnParser(rm_log,nm_logs,app_logs)
     ##parse logs
-    #yarn_parser.rm_parse()
-    #yarn_parser.nm_parse()
-    #yarn_parser.spark_parse()
+    yarn_parser.rm_parse()
+    yarn_parser.nm_parse()
+    yarn_parser.spark_parse()
     ##sort by times
-    #yarn_parser.sort_by_time()
+    yarn_parser.sort_by_time()
     tapps=yarn_parser.get_apps()
     ##parse successful apps
     apps=Analyze.success_apps(tapps)
