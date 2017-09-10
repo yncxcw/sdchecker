@@ -411,8 +411,28 @@ class Analyze:
                 pass
         return a_over_bs
 
-    
+
     """
+    return the diff between graop A and group B
+    A: key_values
+    B: key_values
+    """
+    @staticmethod
+    def A_diff_B(A,B):
+        a_diff_bs={}
+        for key in A.keys():
+            if B.get(key) is not None:
+                a_diff_b=A[key]-B[key]
+                if a_diff_b > 0:
+                    a_diff_bs[key]=a_diff_bs
+                else:
+                    pass
+            else:
+                pass
+        return a_diff_bs 
+
+
+
     apps: map from app to event
     return the application runtime
     """

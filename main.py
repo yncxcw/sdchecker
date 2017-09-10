@@ -93,10 +93,10 @@ if __name__=="__main__":
     app_logs=[]
     ##iterate files
     for f in files:
-        if "resourcemanager" in f:
+        if "resourcemanager" in f and f.endswith(".log"):
             rm_log=f
-            #print rm_log
-        elif "nodemanager" in f:
+            print rm_log
+        elif "nodemanager" in f and f.endswith(".log"):
             nm_logs.append(f)
             #print f
         elif "stderr" in f:
