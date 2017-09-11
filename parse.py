@@ -11,10 +11,11 @@ start=-1
 #yarn log parser
 class YarnParser:    
     ##log file for rm and log file list for nm_logs
-    def __init__(self,rm_log,nm_logs,app_logs):
+    def __init__(self,rm_log,nm_logs,spark_app_logs,mapreduce_app_logs):
         self.rm_log =rm_log
         self.nm_logs=nm_logs
-        self.app_logs=app_logs
+        self.spark_app_logs=spark_app_logs
+        self.mapreduce_app_logs=mapreduce_app_logs
         self.apps={}
         ##help information recording if a executor is logged first ASS
         self.apps_ass={}
@@ -57,11 +58,39 @@ class YarnParser:
                 if self.add_event(app,event):
                     continue
 
+    def mapreduce_parse(self):
+        if len(self.mapreduce_app_logs) == 0:
+            return
+        for f in self.mapreduce_app_logs:
+            app_file=open(f,"r")
+            host="null"
+            for line in app_file.readlines():
+                terms=f.split("/")[-2].split("_")
+                ##we can only extract app id from file path 
+                ##TODO add host
+                app_name=terms[1]+"_"+terms[2]
+                ##for executor log, we need additionly extract
+                ##container id
+                container_id=int(terms[4])
+                if container_id == 1:
+                    app,event=MAPREDUCE_master_matcher.try_to_match(line,"None")
+                    if self.add_event(app_name,event):
+                        continue
+                else:
+                    app,event=MAPREDUCE_slave_matcher.try_to_match(line,"None",container_id)
+                    if self.add_event(app_name,event):
+                        continue 
+        pass
+
+
+
+
+
     ##TODO analyze the allocation delay and launching dey
     def spark_parse(self):
-        if len(self.app_logs) == 0:
+        if len(self.spark_app_logs) == 0:
             return
-        for f in self.app_logs:
+        for f in self.spark_app_logs:
             app_file=open(f,"r")
             host="null"
             for line in app_file.readlines():

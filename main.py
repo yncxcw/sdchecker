@@ -90,7 +90,8 @@ if __name__=="__main__":
     ##classify logs
     rm_log=None
     nm_logs=[]
-    app_logs=[]
+    spark_app_logs=[]
+    mapreduce_app_logs=[]
     ##iterate files
     for f in files:
         if "resourcemanager" in f and f.endswith(".log"):
@@ -100,16 +101,19 @@ if __name__=="__main__":
             nm_logs.append(f)
             #print f
         elif "stderr" in f:
-            app_logs.append(f)
+            spark_app_logs.append(f)
             #print f
+        elif "syslog" in f:
+            mapreduce_app_logs.append(f)
         else:
             pass
     ##initialize parser
-    yarn_parser=YarnParser(rm_log,nm_logs,app_logs)
+    yarn_parser=YarnParser(rm_log,nm_logs,spark_app_logs,mapreduce_app_logs)
     ##parse logs
     yarn_parser.rm_parse()
     yarn_parser.nm_parse()
     yarn_parser.spark_parse()
+    yarn_parser.mapreduce_parse()
     ##sort by times
     yarn_parser.sort_by_time()
     tapps=yarn_parser.get_apps()

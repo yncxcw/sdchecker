@@ -156,6 +156,75 @@ class SPARK_slave_matcher(Matcher):
             return None,event
         return None,None
 
+
+"""
+For mapreduce master log, currently we only logs the first message
+"""
+class MAPREDUCE_master_matcher(Matcher):
+    ##first log message
+    mapreduce_master_dae=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Created AppMaster.*')
+
+    @staticmethod
+    def try_to_match(line,host,container):
+        match_dae=MAPREDUCE_master_matcher.mapreduce_master_dae.match(line)
+        if match_dae:
+            groups=match_dae.groups()
+            #print groups
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"MAPREDUCE_MASTER",container,"INIT","INIT",host)
+            return None,event
+
+        return None,None
+
+
+
+"""
+For mapreduce executor log, currently we only logs the first message
+"""
+class MAPREDUCE_slave_matcher(Matcher):
+    ##first log message
+    mapreduce_slave_dae=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Updating Configuration.*')
+
+    ##decide task type
+    mapreduce_salve_map=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*MapTask.*')
+
+    ##decide task type
+    mapreduce_salve_reduce=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*ReduceTask.*')
+
+
+    @staticmethod
+    def try_to_match(line,host,container):
+        match_dae=MAPREDUCE_slave_matcher.mapreduce_lave_dae.match(line)
+        if match_dae:
+            groups=match_dae.groups()
+            #print groups
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"MAPREDUCE_SLAVE",container,"INIT","INIT",host)
+            return None,event
+
+        match_map=MAPREDUCE_slave_matcher.mapreduce_lave_map.match(line)
+        if match_map:
+            groups=match_map.groups()
+            #print groups
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"MAPREDUCE_SLAVE",container,"ASS","MAP",host)
+            return None,event
+
+        match_reduce=MAPREDUCE_slave_matcher.mapreduce_lave_reduce.match(line)
+        if match_reduce:
+            groups=match_reduce.groups()
+            #print groups
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"MAPREDUCE_SLAVE",container,"ASS","REDUCE",host)
+            return None,event
+
+        return None,None
+
+
+
+
+
+
 class Event:
 
                 

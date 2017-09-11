@@ -204,11 +204,15 @@ class Analyze:
             sub_time=0
             ##time fo am registered
             c1_time=0
+            ##mark the first container
+            first=True
             for event in events:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
-                elif event.source == "NM_CON" and event.state == "RUNNING" and event.id == 2:
+                elif event.source == "NM_CON" and event.state == "RUNNING" and first and event.id != 1:
                     c1_time=event.time
+                    first=False
+                    print event
                 else:
                     pass
             if c1_time - sub_time > 0:
@@ -432,7 +436,7 @@ class Analyze:
         return a_diff_bs 
 
 
-
+    """
     apps: map from app to event
     return the application runtime
     """
