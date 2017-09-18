@@ -119,6 +119,7 @@ if __name__=="__main__":
     tapps=yarn_parser.get_apps()
     ##parse successful apps
     apps=Analyze.success_apps(tapps)
+    #apps=tapps
     ##do analysis
     total_delays=Analyze.total_delay(apps)
     persist_map(output_dir+"/total",total_delays)
@@ -138,7 +139,7 @@ if __name__=="__main__":
     cl_delays=Analyze.cl_delay(apps)
     persist_map(output_dir+"/cl",cl_delays)
 
-    rm_allo_delays=Analyze.rm_allo_delay(apps)
+    rm_allo_delays=Analyze.rm_alloc_delay(apps)
     persist_map(output_dir+"/rm",rm_allo_delays)
      
     driver_sche_delays=Analyze.driver_sche_delay(apps)
@@ -147,6 +148,9 @@ if __name__=="__main__":
     executor_sche_delays=Analyze.executor_sche_delay(apps)
     persist_map(output_dir+"/executor",executor_sche_delays)
 
+    container_localize_delays=Analyze.container_localize_delay(apps)
+    persist_map(output_dir+"/local",container_localize_delays)
+    
     container_launching_delays=Analyze.container_launching_delay(apps)
     persist_map(output_dir+"/launching",container_launching_delays) 
     

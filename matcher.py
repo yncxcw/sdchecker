@@ -102,9 +102,14 @@ class SPARK_master_matcher(Matcher):
     spark_master_ini=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO (.+)TERM')
     ##when app master reigsters with RM
     spark_master_reg=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+) INFO YarnRMClient: Registering(.+)')
+    ##when app starts allocation
+    spark_master_sall=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*allocation starts.*')
+    ##when app finishes allocation
+    spark_master_fall=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*allocation finish')
+
     ##match log messae in spark driver stderr
     @staticmethod
-    def try_to_match(line,host):
+    def try_to_match(line,host,container):
         match_ini=SPARK_master_matcher.spark_master_ini.match(line)
         if match_ini:
             groups=match_ini.groups()
@@ -118,6 +123,22 @@ class SPARK_master_matcher(Matcher):
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
             event =Event(time,"SPARK_DRIVER",1,"REG","REG",host)
             return None,event
+
+        match_sall=SPARK_master_matcher.spark_master_sall.match(line)
+        if match_sall:
+            groups=match_sall.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_DRIVER",1,"SALL","SALL",host)
+            return None,event
+        
+        match_fall=SPARK_master_matcher.spark_master_fall.match(line)
+        if match_fall:
+            groups=match_fall.groups()
+            time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
+            event =Event(time,"SPARK_DRIVER",1,"FALL","FALL",host)
+            return None,event
+        
+
         
         return None,None
 
@@ -162,7 +183,7 @@ For mapreduce master log, currently we only logs the first message
 """
 class MAPREDUCE_master_matcher(Matcher):
     ##first log message
-    mapreduce_master_dae=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Created AppMaster.*')
+    mapreduce_master_dae=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Created MRAppMaster.*')
 
     @staticmethod
     def try_to_match(line,host,container):
@@ -171,7 +192,7 @@ class MAPREDUCE_master_matcher(Matcher):
             groups=match_dae.groups()
             #print groups
             time  =int(groups[1])*3600*1000+int(groups[2])*60*1000+int(groups[3])*1000+int(groups[4])
-            event =Event(time,"MAPREDUCE_MASTER",container,"INIT","INIT",host)
+            event =Event(time,"MAPREDUCE_MASTER",1,"INIT","INIT",host)
             return None,event
 
         return None,None
@@ -183,18 +204,18 @@ For mapreduce executor log, currently we only logs the first message
 """
 class MAPREDUCE_slave_matcher(Matcher):
     ##first log message
-    mapreduce_slave_dae=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Updating Configuration.*')
+    mapreduce_slave_dae=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*Updating Configuration.*')
 
     ##decide task type
-    mapreduce_salve_map=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*MapTask.*')
+    mapreduce_slave_map=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*MapTask.*')
 
     ##decide task type
-    mapreduce_salve_reduce=re.compiler(r'(\S+) (\d+):(\d+):(\d+),(\d+).*ReduceTask.*')
+    mapreduce_slave_reduce=re.compile(r'(\S+) (\d+):(\d+):(\d+),(\d+).*ReduceTask.*')
 
 
     @staticmethod
     def try_to_match(line,host,container):
-        match_dae=MAPREDUCE_slave_matcher.mapreduce_lave_dae.match(line)
+        match_dae=MAPREDUCE_slave_matcher.mapreduce_slave_dae.match(line)
         if match_dae:
             groups=match_dae.groups()
             #print groups
@@ -202,7 +223,7 @@ class MAPREDUCE_slave_matcher(Matcher):
             event =Event(time,"MAPREDUCE_SLAVE",container,"INIT","INIT",host)
             return None,event
 
-        match_map=MAPREDUCE_slave_matcher.mapreduce_lave_map.match(line)
+        match_map=MAPREDUCE_slave_matcher.mapreduce_slave_map.match(line)
         if match_map:
             groups=match_map.groups()
             #print groups
@@ -210,7 +231,7 @@ class MAPREDUCE_slave_matcher(Matcher):
             event =Event(time,"MAPREDUCE_SLAVE",container,"ASS","MAP",host)
             return None,event
 
-        match_reduce=MAPREDUCE_slave_matcher.mapreduce_lave_reduce.match(line)
+        match_reduce=MAPREDUCE_slave_matcher.mapreduce_slave_reduce.match(line)
         if match_reduce:
             groups=match_reduce.groups()
             #print groups

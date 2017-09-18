@@ -241,7 +241,10 @@ class Analyze:
     def is_launched(events,container):
         for event in events:
             if (event.source == "SPARK_EXECUTOR" or event.source == "SPARK_DRIVER"
-                ) and event.id == container:
+               ) and event.id == container:
+                return True
+            if (event.source == "MAPREDUCE_SLAVE" or event.source == "MAPREDUCE_MASTER"
+               ) and event.id == container:
                 return True
         return False
 
@@ -277,12 +280,12 @@ class Analyze:
 
     """
     apps: map for app to events 
-    return rm allocation delay for each container
+    return rm acruisition delay for each container
     This delay is extraced by only parsing rm logs,
     no need to consider the time drift
     """
     @staticmethod
-    def rm_allo_delay(apps):
+    def rm_acquire_delay(apps):
         rm_allo_delays={}
         illegal = 0
         for app,events in apps.items():
@@ -304,6 +307,41 @@ class Analyze:
                     pass
         print "rm allo delay illegal ",illegal
         return rm_allo_delays
+
+
+    """
+    apps: map for app to events 
+    return rm acruisition delay for each container
+    This delay is extraced by only parsing rm logs,
+    no need to consider the time drift
+    """
+    @staticmethod
+    def rm_alloc_delay(apps):
+        rm_allo_delays={}
+        illegal = 0
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            start=0
+            first=True
+            for event in events:
+                if event.source == "SPARK_DRIVER" and event.state == "SALL":
+                    start=event.time
+                elif event.source == "SPARK_DRIVER" and event.state == "FALL":
+                    if first and start > 0 and Analyze.is_launched(events,event.id):
+                        ##compute allocation delay
+                        all_delay=event.time - start
+                        all_id  =app+"-"+str(event.id)
+                        rm_allo_delays[all_id]=all_delay
+                        first=False
+                    else:
+                        ##some containers are allocated but never launched
+                        illegal = illegal + 1
+                else:
+                    pass
+        print "rm allo delay illegal ",illegal
+        return rm_allo_delays
+
+
 
     """
     apps: map for app to events 
@@ -366,6 +404,49 @@ class Analyze:
         print "executor sche delays illegal ",illegal
         return executor_sche_delays
 
+    
+    @staticmethod
+    def get_mapreduce_type(events,id):
+        for event in events:
+            if event.source == "MAPREDUCE_SLAVE" and event.id == id and event.state == "ASS":
+                if event.eve == "MAP":
+                    return "MAP"
+                elif event.eve == "REDUCE":
+                    return "REDUCE"
+                else:
+                    pass
+        return None
+        
+
+    """
+    apps: map from app to event
+    return the localization delay for each container
+    """
+    @staticmethod
+    def container_localize_delay(apps):
+        container_localize_delays={}
+        illegal = 0
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            run_times={}
+            for event in events:
+                if event.source == "NM_CON" and event.state == "LOCALIZING":
+                    run_times[event.id]=event.time
+                elif event.source == "NM_CON" and event.state == "SCHEDULED":
+                    if run_times.get(event.id) and Analyze.is_launched(events,event.id):
+                        local_delay = event.time - run_times[event.id]
+                        appcon_id   = app + "-"+str(event.id)
+                        if local_delay > 0:
+                            container_localize_delays[appcon_id]=local_delay
+                        else:
+                            illegal = illegal + 1
+                    else:
+                        pass
+                else:
+                    pass
+        print "illegal lolalize ",illegal
+        return container_localize_delays
+
     """
     apps: map from app to event
     return the launching delay for each container
@@ -378,13 +459,54 @@ class Analyze:
             ##mapping for allocation starting time
             run_times={}
             for event in events:
-                if event.source == "NM_CON" and event.state == "CONTAINER_LAUNCHED":
+                if event.source == "NM_CON" and event.state == "RUNNING":
                     run_times[event.id]=event.time
                 elif event.source == "SPARK_EXECUTOR" and event.state== "INIT":
                     if run_times.get(event.id):
                         ##compute allocation delay
+                        #print "match"
                         launch_delay=event.time - run_times[event.id]
-                        appcon_id   =app+"-"+str(event.id)
+                        appcon_id   =app+"-"+str(event.id)+"-"+"sparke"
+                        if launch_delay > 0:
+                            container_launch_delays[appcon_id]=launch_delay
+                        else:
+                            illegal = illegal + 1
+                    else:
+                        pass
+                elif event.source == "SPARK_DRIVER" and event.state == "INIT":
+                    if run_times.get(event.id):
+                        ##compute allocation delay
+                        launch_delay=event.time - run_times[event.id]
+                        appcon_id   =app+"-"+str(event.id)+"-"+"sparkm"
+                        if launch_delay > 0:
+                            container_launch_delays[appcon_id]=launch_delay
+                        else:
+                            illegal = illegal + 1
+                    else:
+                        pass
+
+                elif event.source == "MAPREDUCE_MASTER" and event.state == "INIT":
+                    if run_times.get(event.id):
+                        ##compute allocation delay
+                        launch_delay=event.time - run_times[event.id]
+                        appcon_id   =app+"-"+str(event.id)+"-"+"mapreducem"
+                        if launch_delay > 0:
+                            container_launch_delays[appcon_id]=launch_delay
+                        else:
+                            illegal = illegal + 1
+                    else:
+                        pass
+
+                elif event.source == "MAPREDUCE_SLAVE" and event.state == "INIT":
+                    if run_times.get(event.id):
+                        ##compute allocation delay
+                        launch_delay=event.time - run_times[event.id]
+                        if Analyze.get_mapreduce_type(events,event.id) == "MAP":
+                            appcon_id   =app+"-"+str(event.id)+"-"+"mapreducesm"
+                        elif Analyze.get_mapreduce_type(events,event.id) == "REDUCE":
+                            appcon_id   =app+"-"+str(event.id)+"-"+"mapreducesr"
+                        else:
+                            print "errors"
                         if launch_delay > 0:
                             container_launch_delays[appcon_id]=launch_delay
                         else:

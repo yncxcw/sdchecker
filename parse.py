@@ -73,7 +73,7 @@ class YarnParser:
                 ##container id
                 container_id=int(terms[4])
                 if container_id == 1:
-                    app,event=MAPREDUCE_master_matcher.try_to_match(line,"None")
+                    app,event=MAPREDUCE_master_matcher.try_to_match(line,"None","None")
                     if self.add_event(app_name,event):
                         continue
                 else:
@@ -102,7 +102,7 @@ class YarnParser:
                 ##container id
                 container_id=int(terms[4])
                 if container_id == 1:
-                    app,event=SPARK_master_matcher.try_to_match(line,"None")
+                    app,event=SPARK_master_matcher.try_to_match(line,"None","None")
                     if self.add_event(app_name,event):
                         continue
                 else:
