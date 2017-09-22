@@ -124,8 +124,8 @@ if __name__=="__main__":
     total_delays=Analyze.total_delay(apps)
     persist_map(output_dir+"/total",total_delays)
     
-    in_delays=Analyze.in_application_delays(apps)
-    persist_map(output_dir+"/in",in_delays)
+    #in_delays=Analyze.in_application_delays(apps)
+    #persist_map(output_dir+"/in",in_delays)
 
     out_delays=Analyze.out_application_delays(apps)
     persist_map(output_dir+"/out",out_delays) 

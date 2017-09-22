@@ -18,6 +18,8 @@ class Analyze:
             driver_reg=0
             executor_ass=0
             first=True
+            if int(app.split("_")[1]) <= 18:
+                continue 
             for event in events:
                 if event.source == "RM_ATT" and event.state == "FAILED":
                     failed = True
@@ -76,7 +78,6 @@ class Analyze:
                 total_delays[app]=total_delay
             else:
                 illegal = illegal + 1
-                print app,assign_time,sub_time
         print "total_delau illegal ",illegal
         return total_delays
    
@@ -117,18 +118,23 @@ class Analyze:
             for event in events:
                 if event.source == "RM_APP" and event.state == "SUBMITTED":
                     sub_time=event.time
+                    print event
                 elif event.source == "SPARK_DRIVER" and event.state == "INIT":
                     driver_ini=event.time
                 elif event.source == "SPARK_DRIVER" and event.state == "REG":
                     driver_reg=event.time
                 elif event.source == "SPARK_EXECUTOR" and event.state == "INIT" and event.id == executor_id:
-                    executor_int=event.time
+                    executor_ini=event.time
                 elif event.source == "SPARK_EXECUTOR" and event.state == "ASS" and event.id == executor_id:
                     executor_ass=event.time
+                    print event
                 else:
                     pass
             if (executor_ass - sub_time > 0) and (driver_reg - driver_ini > 0) and(executor_ass - executor_ini > 0):
-                out_delays[app]=(executor_ass - sub_time) - (driver_reg - driver_ini) - (executor_ass - executor_int)
+                driver_delay   = driver_reg    - driver_ini
+                executor_delay = executor_ass  - executor_ini
+                out_delay      = (executor_ass  - sub_time) - driver_delay - executor_delay
+                out_delays[app]= out_delay
             else:
                 illegal = illegal + 1
         print "out delays illegal ",illegal
@@ -212,7 +218,6 @@ class Analyze:
                 elif event.source == "NM_CON" and event.state == "RUNNING" and first and event.id != 1:
                     c1_time=event.time
                     first=False
-                    print event
                 else:
                     pass
             if c1_time - sub_time > 0:
