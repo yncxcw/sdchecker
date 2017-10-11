@@ -5,7 +5,7 @@ SDchecker is log mining tool that we design to study the scheduling delay for ap
 ## How it works:
 SDchecker mines bothe YARN and application logs (e.g., Spark) to contruct a scheduling graph. It further 
 decompose each piece of the delay from the scheduling graph so that users can use it to study these delays. 
-Currently, it supports tracing the scheduling delay of Spark on YARN, we plan to supprt other frameworks, like 
+Currently, it supports tracing the scheduling delay for Spark on YARN, we plan to supprt other frameworks, like 
 Hadoop, Tez in the future.
 
 Currently it can report:
@@ -23,8 +23,10 @@ Currently it can report:
 (5) executor delay: Spark executor initialization delay.  
 
 
-##Usage:
+## Usage:
 
 python --logs /log-directiory  --output /output-directory
 
-Note: users need to copy hadoop logs under the log-directiory from all slaves nodes, the hadoop logs is located at $HADOOP\_HOME/logs
+Note: users need to copy hadoop logs under the log-directiory from all slaves nodes, the hadoop logs is located at $HADOOP\_HOME/logs.
+
+We welcome you comments on this project.
