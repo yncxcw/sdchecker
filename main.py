@@ -16,9 +16,10 @@ output_dir=None
 
 def print_usage():
    print """
-          usage for this tool
-         
-
+         usage for this tool:
+         --logs:   logs path of logs files from cluster nodes (including slave nodes and master nodes)
+                   each sub-fir in path should contains each log files from on node
+         --output: the output results for this round of analysis
          """ 
 
 def parse_usage(args):
@@ -96,7 +97,7 @@ if __name__=="__main__":
     for f in files:
         if "resourcemanager" in f and f.endswith(".log"):
             rm_log=f
-            print rm_log
+            #print rm_log
         elif "nodemanager" in f and f.endswith(".log"):
             nm_logs.append(f)
             #print f
