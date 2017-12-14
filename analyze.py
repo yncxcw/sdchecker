@@ -316,7 +316,7 @@ class Analyze:
 
     """
     apps: map for app to events 
-    return rm acruisition delay for each container
+    return rm allocation delay for each container
     This delay is extraced by only parsing rm logs,
     no need to consider the time drift
     """
@@ -346,6 +346,43 @@ class Analyze:
         print "rm allo delay illegal ",illegal
         return rm_allo_delays
 
+
+    """
+    apps: map for app to events
+    return rm allocation delay+launch delay+(queuing delay for distributed scheduler)
+    This function is implemented to further exam the scheduling quality of distributed scheduler
+    """
+    @staticmethod
+    def rm_alloc_launch_delay(apps):
+        rm_allo_launch_delays={}
+        illegal = 0
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            start=0
+            first=True
+            ##id for last container
+            cl_id = Analyze.last_container(events)
+            for event in events:
+                if event.source == "SPARK_DRIVER" and event.state == "SALL":
+                    start=event.time
+                elif event.source == "NM_CON" and event.state == "RUNNING" and event.id == cl_id:
+                    if first and start > 0 and Analyze.is_launched(events,event.id):
+                        ##compute allocation delay
+                        all_delay=event.time - start
+                        all_id  =app+"-"+str(event.id)
+                        rm_allo_launch_delays[all_id]=all_delay
+                        first=False
+                    else:
+                        ##some containers are allocated but never launched
+                        illegal = illegal + 1
+                else:
+                    pass
+        print "rm allo delay illegal ",illegal
+        return rm_allo_launch_delays
+
+
+
+    
 
 
     """
@@ -421,7 +458,41 @@ class Analyze:
                 else:
                     pass
         return None
-        
+
+
+    """
+    apps: map from app to event
+    return the localization delay for each container
+    """
+    @staticmethod
+    def container_queuing_delay(apps):
+        container_queuing_delays={}
+        illegal = 0
+        for app,events in apps.items():
+            ##mapping for allocation starting time
+            run_times={}
+            for event in events:
+                if event.source == "NM_CON" and event.state == "SCHEDULED":
+                    run_times[event.id]=event.time
+                elif event.source == "NM_CON" and event.state == "RUNNING":
+                    if run_times.get(event.id) and Analyze.is_launched(events,event.id):
+                        queue_delay = event.time - run_times[event.id]
+                        appcon_id   = app + "-"+str(event.id)
+                        if queue_delay > 0:
+                            container_queuing_delays[appcon_id]=queue_delay
+                        else:
+                            illegal = illegal + 1
+                    else:
+                        pass
+                else:
+                    pass
+        print "illegal queue ",illegal
+        return container_queuing_delays
+
+   
+
+
+
 
     """
     apps: map from app to event

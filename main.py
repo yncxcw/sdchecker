@@ -142,7 +142,10 @@ if __name__=="__main__":
 
     rm_allo_delays=Analyze.rm_alloc_delay(apps)
     persist_map(output_dir+"/rm",rm_allo_delays)
-     
+    
+    rm_alloc_launch_delays=Analyze.rm_alloc_launch_delay(apps)
+    persist_map(output_dir+"/rm_launch",rm_alloc_launch_delays)
+ 
     driver_sche_delays=Analyze.driver_sche_delay(apps)
     persist_map(output_dir+"/driver",driver_sche_delays)
 
@@ -151,7 +154,10 @@ if __name__=="__main__":
 
     container_localize_delays=Analyze.container_localize_delay(apps)
     persist_map(output_dir+"/local",container_localize_delays)
-    
+   
+    container_queue_delays=Analyze.container_queuing_delay(apps)
+    persist_map(output_dir+"/queue",container_queue_delays)
+     
     container_launching_delays=Analyze.container_launching_delay(apps)
     persist_map(output_dir+"/launching",container_launching_delays) 
     
